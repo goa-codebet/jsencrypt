@@ -10,8 +10,8 @@ import {SecureRandom} from "./rng";
 let dbits;
 
 // JavaScript engine analysis
-const canary = 0xdeadbeefcafe;
-const j_lm = ((canary & 0xffffff) == 0xefcafe);
+// const canary = 0xdeadbeefcafe;
+// const j_lm = ((canary & 0xffffff) == 0xefcafe);
 
 
 //#region
@@ -1809,30 +1809,30 @@ export function parseBigInt(str:string, r:number) {
 // am1: use a single mult and divide to get the high bits,
 // max digit bits should be 26 because
 // max internal value = 2*dvalue^2-2*dvalue (< 2^53)
-function am1(i:number, x:number, w:BigInteger, j:number, c:number, n:number) {
-    while (--n >= 0) {
-        const v = x * this[i++] + w[j] + c;
-        c = Math.floor(v / 0x4000000);
-        w[j++] = v & 0x3ffffff;
-    }
-    return c;
-}
+// function am1(i:number, x:number, w:BigInteger, j:number, c:number, n:number) {
+//     while (--n >= 0) {
+//         const v = x * this[i++] + w[j] + c;
+//         c = Math.floor(v / 0x4000000);
+//         w[j++] = v & 0x3ffffff;
+//     }
+//     return c;
+// }
 // am2 avoids a big mult-and-extract completely.
 // Max digit bits should be <= 30 because we do bitwise ops
 // on values up to 2*hdvalue^2-hdvalue-1 (< 2^31)
-function am2(i:number, x:number, w:BigInteger, j:number, c:number, n:number) {
-    const xl = x & 0x7fff;
-    const xh = x >> 15;
-    while (--n >= 0) {
-        let l = this[i] & 0x7fff;
-        const h = this[i++] >> 15;
-        const m = xh * l + h * xl;
-        l = xl * l + ((m & 0x7fff) << 15) + w[j] + (c & 0x3fffffff);
-        c = (l >>> 30) + (m >>> 15) + xh * h + (c >>> 30);
-        w[j++] = l & 0x3fffffff;
-    }
-    return c;
-}
+// function am2(i:number, x:number, w:BigInteger, j:number, c:number, n:number) {
+//     const xl = x & 0x7fff;
+//     const xh = x >> 15;
+//     while (--n >= 0) {
+//         let l = this[i] & 0x7fff;
+//         const h = this[i++] >> 15;
+//         const m = xh * l + h * xl;
+//         l = xl * l + ((m & 0x7fff) << 15) + w[j] + (c & 0x3fffffff);
+//         c = (l >>> 30) + (m >>> 15) + xh * h + (c >>> 30);
+//         w[j++] = l & 0x3fffffff;
+//     }
+//     return c;
+// }
 // Alternately, set max digit bits to 28 since some
 // browsers slow down when dealing with 32-bit numbers.
 function am3(i:number, x:number, w:BigInteger, j:number, c:number, n:number) {
@@ -1849,16 +1849,8 @@ function am3(i:number, x:number, w:BigInteger, j:number, c:number, n:number) {
     return c;
 }
 
-if (j_lm && (navigator.appName == "Microsoft Internet Explorer")) {
-    BigInteger.prototype.am = am2;
-    dbits = 30;
-} else if (j_lm && (navigator.appName != "Netscape")) {
-    BigInteger.prototype.am = am1;
-    dbits = 26;
-} else { // Mozilla/Netscape seems to prefer am3
-    BigInteger.prototype.am = am3;
-    dbits = 28;
-}
+BigInteger.prototype.am = am3;
+dbits = 28;
 
 BigInteger.prototype.DB = dbits;
 BigInteger.prototype.DM = ((1 << dbits) - 1);
